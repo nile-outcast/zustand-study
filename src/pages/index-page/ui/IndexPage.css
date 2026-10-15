@@ -1,0 +1,14 @@
+.index-page {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  place-content: center;
+  place-items: center;
+  flex-grow: 1;
+  padding: 32px 20px;
+
+  @media (max-width: 1024px) {
+    padding: 24px 16px;
+    gap: 18px;
+  }
+}
