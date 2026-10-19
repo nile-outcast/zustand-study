@@ -3,11 +3,12 @@ import {
   createLoadingSlice,
   type LoadingSlice,
 } from '@/shared/model/create-loading-slice'
+import type { Nullable } from '@/shared/types/basic'
 import { create } from 'zustand'
 
 interface PokemonState extends LoadingSlice {
   items: Array<Pokemon>
-  errorMessage: string | null
+  errorMessage: Nullable<string>
   fetchPokemonList: () => Promise<void>
 }
 

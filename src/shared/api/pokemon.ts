@@ -1,3 +1,5 @@
+import type { Nullable } from '../types/basic'
+
 const BASE_URL = 'https://pokeapi.co/api/v2'
 
 /** Сырая запись из response.results эндпоинта /pokemon */
@@ -9,8 +11,8 @@ interface PokemonRaw {
 /** Ответ эндпоинта /pokemon (пагинация через limit/offset) */
 interface PokemonListResponse {
   count: number
-  next: string | null
-  previous: string | null
+  next: Nullable<string>
+  previous: Nullable<string>
   results: Array<PokemonRaw>
 }
 
