@@ -1,16 +1,8 @@
-import { usePokemonStore } from '@/entities/pokemon/model/pokemon-store'
 import { Counter } from '@/features/counter'
 import { PokemonList } from '@/features/pokemon-list'
-import { useEffect } from 'react'
 import './IndexPage.css'
 
 export function IndexPage() {
-  const fetchPokemonList = usePokemonStore((state) => state.fetchPokemonList)
-
-  useEffect(() => {
-    void fetchPokemonList()
-  }, [fetchPokemonList])
-
   return (
     <section className="index-page">
       <h1>Zustand Study</h1>

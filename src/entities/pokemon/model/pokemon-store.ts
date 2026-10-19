@@ -1,33 +1,31 @@
 import { getPokemonList, type Pokemon } from '@/shared/api/pokemon'
-import type { FetchStatus } from '@/shared/types/fetch-status'
+import { createLoadingSlice, type LoadingSlice } from '@/shared/model/create-loading-slice'
 import { create } from 'zustand'
 
-interface PokemonState {
-  status: FetchStatus
+interface PokemonState extends LoadingSlice {
   items: Array<Pokemon>
-  error: string | null
+  errorMessage: string | null
   fetchPokemonList: () => Promise<void>
 }
 
-export const usePokemonStore = create<PokemonState>((set, get) => ({
-  status: 'initial',
+export const usePokemonStore = create<PokemonState>()((set, get) => ({
+  ...createLoadingSlice(set, get),
   items: [],
-  error: null,
+  errorMessage: null,
 
   fetchPokemonList: async () => {
     // Защита от повторных запросов во время загрузки
-    if (get().status === 'loading') return
+    if (get().isLoading()) return
 
-    set({ status: 'loading', error: null })
+    get().loading()
 
     try {
       const items = await getPokemonList(20, 0)
-      set({ status: 'success', items })
+      set({ items })
+      get().success()
     } catch (err) {
-      set({
-        status: 'error',
-        error: err instanceof Error ? err.message : 'Неизвестная ошибка',
-      })
+      set({ errorMessage: err instanceof Error ? err.message : 'Неизвестная ошибка' })
+      get().error()
     }
   },
 }))

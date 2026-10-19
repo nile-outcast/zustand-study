@@ -1,20 +1,27 @@
 import { usePokemonStore } from '@/entities/pokemon/model/pokemon-store'
+import { useEffect } from 'react'
 import './PokemonList.css'
 
 export function PokemonList() {
-  const status = usePokemonStore((state) => state.status)
+  const isLoading = usePokemonStore((state) => state.isLoading())
+  const isError = usePokemonStore((state) => state.isError())
+  const isSuccess = usePokemonStore((state) => state.isSuccess())
   const items = usePokemonStore((state) => state.items)
-  const error = usePokemonStore((state) => state.error)
+  const errorMessage = usePokemonStore((state) => state.errorMessage)
   const fetchPokemonList = usePokemonStore((state) => state.fetchPokemonList)
 
-  if (status === 'loading') {
+    useEffect(() => {
+    void fetchPokemonList()
+  }, [fetchPokemonList])
+
+  if (isLoading) {
     return <p className="pokemon-list__status">Загрузка покемонов…</p>
   }
 
-  if (status === 'error') {
+  if (isError) {
     return (
       <div className="pokemon-list__error">
-        <p>Не удалось загрузить покемонов: {error}</p>
+        <p>Не удалось загрузить покемонов: {errorMessage}</p>
         <button
           type="button"
           className="pokemon-list__retry"
@@ -26,7 +33,7 @@ export function PokemonList() {
     )
   }
 
-  if (status !== 'success') {
+  if (!isSuccess) {
     return null
   }
 
