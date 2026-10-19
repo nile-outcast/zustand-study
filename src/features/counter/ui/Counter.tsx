@@ -16,7 +16,11 @@ export function Counter() {
       <button type="button" className="counter__btn" onClick={increment}>
         +
       </button>
-      <button type="button" className="counter__btn counter__btn--reset" onClick={reset}>
+      <button
+        type="button"
+        className="counter__btn counter__btn--reset"
+        onClick={reset}
+      >
         Reset
       </button>
     </div>

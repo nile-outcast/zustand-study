@@ -1,5 +1,8 @@
 import { getPokemonList, type Pokemon } from '@/shared/api/pokemon'
-import { createLoadingSlice, type LoadingSlice } from '@/shared/model/create-loading-slice'
+import {
+  createLoadingSlice,
+  type LoadingSlice,
+} from '@/shared/model/create-loading-slice'
 import { create } from 'zustand'
 
 interface PokemonState extends LoadingSlice {
@@ -24,7 +27,9 @@ export const usePokemonStore = create<PokemonState>()((set, get) => ({
       set({ items })
       get().success()
     } catch (err) {
-      set({ errorMessage: err instanceof Error ? err.message : 'Неизвестная ошибка' })
+      set({
+        errorMessage: err instanceof Error ? err.message : 'Неизвестная ошибка',
+      })
       get().error()
     }
   },

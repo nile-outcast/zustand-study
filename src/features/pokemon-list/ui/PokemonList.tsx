@@ -10,7 +10,7 @@ export function PokemonList() {
   const errorMessage = usePokemonStore((state) => state.errorMessage)
   const fetchPokemonList = usePokemonStore((state) => state.fetchPokemonList)
 
-    useEffect(() => {
+  useEffect(() => {
     void fetchPokemonList()
   }, [fetchPokemonList])
 
@@ -41,7 +41,9 @@ export function PokemonList() {
     <ul className="pokemon-list">
       {items.map((pokemon) => (
         <li key={pokemon.id} className="pokemon-list__item">
-          <span className="pokemon-list__id">#{String(pokemon.id).padStart(3, '0')}</span>
+          <span className="pokemon-list__id">
+            #{String(pokemon.id).padStart(3, '0')}
+          </span>
           <span className="pokemon-list__name">{pokemon.name}</span>
         </li>
       ))}
