@@ -1,16 +1,10 @@
-import type { ApiCallResponse } from '@/shared/types/api-call'
+import type {
+  ApiCallArgs,
+  ApiCallConfig,
+  ApiCallResponse,
+} from '@/shared/types/api-call'
+
 import type { BaseObject, Nullable } from '../types/basic'
-
-type ApiCallConfig = Partial<{
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-  baseUrl: string
-  headers: BaseObject
-}>
-
-type ApiCallArgs<Body extends BaseObject> = Partial<{
-  query: BaseObject
-  body: Body
-}>
 
 interface ApiRequestHandle<D, E extends Error = Error> {
   call: <Body extends BaseObject = BaseObject>(
@@ -26,16 +20,19 @@ function buildUrl(path: string, query?: BaseObject): string {
   }
 
   const params = new URLSearchParams()
+
   for (const [key, value] of Object.entries(query)) {
     params.append(key, String(value))
   }
 
   const separator = path.includes('?') ? '&' : '?'
+
   return `${path}${separator}${params.toString()}`
 }
 
 async function safeParse<T>(response: Response): Promise<T | undefined> {
   const contentType = response.headers.get('content-type')
+
   if (!contentType || !contentType.includes('application/json')) {
     return undefined
   }
@@ -82,21 +79,19 @@ export function createApiRequest<D, E extends Error = Error>(
         if (!response.ok) {
           return {
             isError: true,
-            status: response.status,
             data: await safeParse<E>(response),
           }
         }
 
         return {
           isError: false,
-          status: response.status,
           data: await response.json(),
         }
       } catch (rawError) {
         if (controller?.signal.aborted) {
           return {
-            isError: true,
             isCancelled: true,
+            isError: true,
             rawError,
           }
         }

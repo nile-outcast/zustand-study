@@ -1,3 +1,5 @@
+import { create } from 'zustand'
+
 import type { Pokemon, PokemonListResponse } from '@/entities/pokemon/types'
 import { POKEMON_API_BASE_URL } from '@/shared/config/pokemon-api'
 import { createApiRequest } from '@/shared/model/create-api-request'
@@ -7,7 +9,6 @@ import {
 } from '@/shared/model/create-loading-slice'
 import type { ApiCallErrorResponse } from '@/shared/types/api-call'
 import type { Nullable } from '@/shared/types/basic'
-import { create } from 'zustand'
 
 interface PokemonState extends LoadingSlice {
   items: Array<Pokemon>
@@ -26,6 +27,7 @@ function toErrorMessage(response: ApiCallErrorResponse<Error>): string {
   if (response.data) {
     return `Ошибка сервера: ${response.data.message}`
   }
+
   return 'Неизвестная ошибка'
 }
 
@@ -43,6 +45,7 @@ export const usePokemonStore = create<PokemonState>()((set, get) => ({
 
   fetchPokemonList: async () => {
     if (get().isLoading()) return
+
     get().loading()
 
     const result = await pokemonListRequest.call({
@@ -54,12 +57,18 @@ export const usePokemonStore = create<PokemonState>()((set, get) => ({
 
     if (result.isError) {
       if (result.isCancelled) return
-      set({ errorMessage: toErrorMessage(result) })
+
+      set({
+        errorMessage: toErrorMessage(result),
+      })
       get().error()
+
       return
     }
 
-    set({ items: normalizePokemonList(result.data) })
+    set({
+      items: normalizePokemonList(result.data),
+    })
     get().success()
   },
 }))

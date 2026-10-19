@@ -1,5 +1,7 @@
-import { usePokemonStore } from '@/entities/pokemon/model/pokemon-store'
 import { useEffect } from 'react'
+
+import { usePokemonStore } from '@/entities/pokemon/model/pokemon-store'
+
 import './PokemonList.css'
 
 export function PokemonList() {
