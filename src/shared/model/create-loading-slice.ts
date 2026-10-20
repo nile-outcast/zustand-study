@@ -6,7 +6,7 @@ import type { SliceCreator } from '@/shared/types/slice-creator'
  * `...createLoadingSlice(set, get)`.
  */
 export interface LoadingSlice {
-  status: FetchStatus
+  loadStatus: FetchStatus
   // Экшены по именам статусов
   loading: () => void
   success: () => void
@@ -29,16 +29,17 @@ export interface LoadingSlice {
  * поля через get().
  */
 export const createLoadingSlice: SliceCreator<LoadingSlice> = (set, get) => ({
-  status: 'initial',
+  loadStatus: 'initial',
 
-  loading: () => set({ status: 'loading' }),
-  success: () => set({ status: 'success' }),
-  error: () => set({ status: 'error' }),
-  reset: () => set({ status: 'initial' }),
+  loading: () => set({ loadStatus: 'loading' }),
+  success: () => set({ loadStatus: 'success' }),
+  error: () => set({ loadStatus: 'error' }),
+  reset: () => set({ loadStatus: 'initial' }),
 
-  isInitial: () => get().status === 'initial',
-  isLoading: () => get().status === 'loading',
-  isSuccess: () => get().status === 'success',
-  isError: () => get().status === 'error',
-  isFinished: () => get().status === 'success' || get().status === 'error',
+  isInitial: () => get().loadStatus === 'initial',
+  isLoading: () => get().loadStatus === 'loading',
+  isSuccess: () => get().loadStatus === 'success',
+  isError: () => get().loadStatus === 'error',
+  isFinished: () =>
+    get().loadStatus === 'success' || get().loadStatus === 'error',
 })

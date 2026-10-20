@@ -11,7 +11,8 @@ import type { StoreApi } from 'zustand'
  *   export const createLoadingSlice: SliceCreator<LoadingSlice> = (set, get) => ({ ... })
  *   // в сторе: ...createLoadingSlice(set, get)
  */
-export type SliceCreator<Slice> = (
+export type SliceCreator<Slice, Config = undefined> = (
   set: StoreApi<Slice>['setState'],
   get: StoreApi<Slice>['getState'],
+  config?: Config,
 ) => Slice

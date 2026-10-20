@@ -7,7 +7,7 @@ import type {
 import type { BaseObject, Nullable } from '../types/basic'
 
 interface ApiRequestHandle<D, E extends Error = Error> {
-  call: <Body extends BaseObject = BaseObject>(
+  call: <Body extends BaseObject | FormData = BaseObject>(
     params: ApiCallArgs<Body>,
   ) => Promise<ApiCallResponse<D, E>>
   cancel: () => void
@@ -44,6 +44,16 @@ async function safeParse<T>(response: Response): Promise<T | undefined> {
   }
 }
 
+function getRequestBody<Body extends BaseObject | FormData>(
+  body?: Body,
+): FormData | string | undefined {
+  if (body === undefined) return undefined
+
+  const isFormData = body instanceof FormData
+
+  return isFormData ? body : JSON.stringify(body)
+}
+
 /**
  * Фабрика для выполнения HTTP-запросов с автоматической обработкой ошибок и отменой.
  *
@@ -66,13 +76,17 @@ export function createApiRequest<D, E extends Error = Error>(
       try {
         const url = buildUrl(`${baseUrl}${path}`, query)
 
+        const isFormData = body instanceof FormData
+
         const response = await fetch(url, {
           method: config.method ?? 'GET',
           headers: {
-            'Content-Type': 'application/json',
             ...config.headers,
+            'Content-Type': isFormData
+              ? 'multipart/form-data'
+              : 'application/json',
           },
-          body: body === undefined ? undefined : JSON.stringify(body),
+          body: getRequestBody(body),
           signal: controller.signal,
         })
 

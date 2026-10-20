@@ -4,16 +4,20 @@ import type { Pokemon, PokemonListResponse } from '@/entities/pokemon/types'
 import { POKEMON_API_BASE_URL } from '@/shared/config/pokemon-api'
 import { createApiRequest } from '@/shared/model/create-api-request'
 import {
-  createLoadingSlice,
-  type LoadingSlice,
-} from '@/shared/model/create-loading-slice'
+  createPaginationSlice,
+  type PaginationSlice,
+} from '@/shared/model/create-pagination-slice'
 import type { ApiCallErrorResponse } from '@/shared/types/api-call'
 import type { Nullable } from '@/shared/types/basic'
 
-interface PokemonState extends LoadingSlice {
+interface PokemonState extends PaginationSlice {
   items: Array<Pokemon>
-  errorMessage: Nullable<string>
+  isLoading: boolean
+  loadErrorMessage: Nullable<string>
+  isLoadingMore: boolean
+  loadMoreErrorMessage: Nullable<string>
   fetchPokemonList: () => Promise<void>
+  fetchNextPage: () => Promise<void>
 }
 
 function normalizePokemonList(response: PokemonListResponse): Array<Pokemon> {
@@ -39,36 +43,92 @@ const pokemonListRequest = createApiRequest<PokemonListResponse, Error>(
 )
 
 export const usePokemonStore = create<PokemonState>()((set, get) => ({
-  ...createLoadingSlice(set, get),
+  ...createPaginationSlice(set, get, { limit: 40 }),
   items: [],
-  errorMessage: null,
+  isLoading: false,
+  loadErrorMessage: null,
+  isLoadingMore: false,
+  loadMoreErrorMessage: null,
 
   fetchPokemonList: async () => {
-    if (get().isLoading()) return
+    if (get().isLoading) return
 
-    get().loading()
+    set({
+      isLoading: true,
+      loadErrorMessage: null,
+      loadMoreErrorMessage: null,
+    })
 
     const result = await pokemonListRequest.call({
       query: {
-        limit: 40,
+        limit: get().limit,
         offset: 0,
       },
     })
 
     if (result.isError) {
-      if (result.isCancelled) return
+      if (result.isCancelled) {
+        set({ isLoading: false })
+
+        return
+      }
 
       set({
-        errorMessage: toErrorMessage(result),
+        isLoading: false,
+        loadErrorMessage: toErrorMessage(result),
       })
-      get().error()
 
       return
     }
 
     set({
+      isLoading: false,
       items: normalizePokemonList(result.data),
+      offset: get().limit,
+      total: result.data.count,
+      hasMore: result.data.next !== null && result.data.results.length > 0,
     })
-    get().success()
+  },
+
+  fetchNextPage: async () => {
+    const state = get()
+
+    // Защита от параллельных запросов и загрузки при отсутствии данных
+    if (state.isLoadingMore || !state.hasMore) return
+
+    set({
+      isLoadingMore: true,
+      loadMoreErrorMessage: null,
+    })
+
+    const result = await pokemonListRequest.call({
+      query: {
+        limit: state.limit,
+        offset: state.offset,
+      },
+    })
+
+    if (result.isError) {
+      if (result.isCancelled) {
+        set({ isLoadingMore: false })
+
+        return
+      }
+
+      set({
+        isLoadingMore: false,
+        loadMoreErrorMessage: toErrorMessage(result),
+      })
+
+      return
+    }
+
+    set({
+      isLoadingMore: false,
+      items: [...get().items, ...normalizePokemonList(result.data)],
+      offset: get().offset + get().limit,
+      total: result.data.count,
+      hasMore: result.data.next !== null && result.data.results.length > 0,
+    })
   },
 }))

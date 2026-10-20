@@ -8,7 +8,7 @@ export type ApiCallConfig = Partial<{
   headers: BaseObject
 }>
 
-export type ApiCallArgs<Body extends BaseObject> = Partial<{
+export type ApiCallArgs<Body extends BaseObject | FormData> = Partial<{
   query: BaseObject
   body: Body
 }>
