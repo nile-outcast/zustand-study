@@ -17,20 +17,26 @@ export function PokemonList() {
   }, [fetchPokemonList])
 
   if (isLoading) {
-    return <p className="pokemon-list__status">Загрузка покемонов…</p>
+    return (
+      <div className="pokemon-list__centered">
+        <p className="pokemon-list__status">Загрузка покемонов…</p>
+      </div>
+    )
   }
 
   if (isError) {
     return (
-      <div className="pokemon-list__error">
-        <p>Не удалось загрузить покемонов: {errorMessage}</p>
-        <button
-          type="button"
-          className="pokemon-list__retry"
-          onClick={() => void fetchPokemonList()}
-        >
-          Повторить
-        </button>
+      <div className="pokemon-list__centered">
+        <div className="pokemon-list__error">
+          <p>Не удалось загрузить покемонов: {errorMessage}</p>
+          <button
+            type="button"
+            className="pokemon-list__retry"
+            onClick={() => void fetchPokemonList()}
+          >
+            Повторить
+          </button>
+        </div>
       </div>
     )
   }

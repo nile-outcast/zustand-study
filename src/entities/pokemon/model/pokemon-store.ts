@@ -50,7 +50,7 @@ export const usePokemonStore = create<PokemonState>()((set, get) => ({
 
     const result = await pokemonListRequest.call({
       query: {
-        limit: 20,
+        limit: 40,
         offset: 0,
       },
     })
