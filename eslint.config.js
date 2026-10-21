@@ -89,5 +89,42 @@ export default tseslint.config(
       globals: globals.node,
     },
   },
+  {
+    // Механический контроль соглашений из .kodarules / AGENTS.md
+    // src/shared/types исключён: там определяются сами примитивы Nullable / isNil
+    files: ['**/*.{ts,tsx}'],
+    ignores: ['src/shared/types/**'],
+    rules: {
+      // Правило 2: массивы только как Array<T>
+      '@typescript-eslint/array-type': ['error', { default: 'generic' }],
+      'no-restricted-syntax': [
+        'error',
+        {
+          // Правило 4: нативные enum запрещены (erasableSyntaxOnly)
+          selector: 'TSEnumDeclaration',
+          message:
+            'Нативный enum запрещён (erasableSyntaxOnly): union-тип или as const + union',
+        },
+        {
+          // Правило 1: вместо ручного `T | null` — Nullable<T>
+          selector: 'TSUnionType > TSNullKeyword',
+          message:
+            'Используй Nullable<T> из @/shared/types/basic вместо `T | null`',
+        },
+        {
+          // Правило 3: вместо сравнения с null — isNil
+          selector: 'BinaryExpression > Literal[value=null]',
+          message:
+            'Используй isNil из @/shared/types/guards вместо сравнения с null',
+        },
+        {
+          // Правило 3: вместо сравнения с undefined — isNil
+          selector: "BinaryExpression > Identifier[name='undefined']",
+          message:
+            'Используй isNil из @/shared/types/guards вместо сравнения с undefined',
+        },
+      ],
+    },
+  },
   prettier,
 )

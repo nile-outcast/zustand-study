@@ -9,6 +9,7 @@ import {
 } from '@/shared/model/create-pagination-slice'
 import type { ApiCallErrorResponse } from '@/shared/types/api-call'
 import type { Nullable } from '@/shared/types/basic'
+import { isNil } from '@/shared/types/guards'
 
 interface PokemonState extends PaginationSlice {
   items: Array<Pokemon>
@@ -86,7 +87,7 @@ export const usePokemonStore = create<PokemonState>()((set, get) => ({
       items: normalizePokemonList(result.data),
       offset: get().limit,
       total: result.data.count,
-      hasMore: result.data.next !== null && result.data.results.length > 0,
+      hasMore: !isNil(result.data.next) && result.data.results.length > 0,
     })
   },
 
@@ -128,7 +129,7 @@ export const usePokemonStore = create<PokemonState>()((set, get) => ({
       items: [...get().items, ...normalizePokemonList(result.data)],
       offset: get().offset + get().limit,
       total: result.data.count,
-      hasMore: result.data.next !== null && result.data.results.length > 0,
+      hasMore: !isNil(result.data.next) && result.data.results.length > 0,
     })
   },
 }))
