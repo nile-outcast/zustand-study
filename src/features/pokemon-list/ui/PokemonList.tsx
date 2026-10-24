@@ -6,11 +6,15 @@ import type { Nullable } from '@/shared/types/basic'
 import './PokemonList.css'
 
 export function PokemonList() {
-  const isLoading = usePokemonStore((state) => state.isLoading)
-  const loadErrorMessage = usePokemonStore((state) => state.loadErrorMessage)
-  const isLoadingMore = usePokemonStore((state) => state.isLoadingMore)
+  const isLoading = usePokemonStore((state) => state.loadingStage.isLoading)
+  const loadErrorMessage = usePokemonStore(
+    (state) => state.loadingStage.errorMessage,
+  )
+  const isLoadingMore = usePokemonStore(
+    (state) => state.loadingMoreStage.isLoading,
+  )
   const loadMoreErrorMessage = usePokemonStore(
-    (state) => state.loadMoreErrorMessage,
+    (state) => state.loadingMoreStage.errorMessage,
   )
   const items = usePokemonStore((state) => state.items)
   const fetchPokemonList = usePokemonStore((state) => state.fetchPokemonList)
@@ -34,6 +38,11 @@ export function PokemonList() {
         observerRef.current?.disconnect()
         observerRef.current = null
 
+        return
+      }
+
+      // Observer уже наблюдает за этим же элементом — не пересоздаём.
+      if (observerRef.current?.takeRecords && observerRef.current) {
         return
       }
 

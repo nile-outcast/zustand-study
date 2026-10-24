@@ -4,19 +4,20 @@ import type { Pokemon, PokemonListResponse } from '@/entities/pokemon/types'
 import { POKEMON_API_BASE_URL } from '@/shared/config/pokemon-api'
 import { createApiRequest } from '@/shared/model/create-api-request'
 import {
+  createLoadingStage,
+  type LoadingStage,
+} from '@/shared/model/create-loading-stage'
+import {
   createPaginationSlice,
   type PaginationSlice,
 } from '@/shared/model/create-pagination-slice'
 import type { ApiCallErrorResponse } from '@/shared/types/api-call'
-import type { Nullable } from '@/shared/types/basic'
 import { isNil } from '@/shared/types/guards'
 
 interface PokemonState extends PaginationSlice {
   items: Array<Pokemon>
-  isLoading: boolean
-  loadErrorMessage: Nullable<string>
-  isLoadingMore: boolean
-  loadMoreErrorMessage: Nullable<string>
+  loadingStage: LoadingStage
+  loadingMoreStage: LoadingStage
   fetchPokemonList: () => Promise<void>
   fetchNextPage: () => Promise<void>
 }
@@ -46,19 +47,15 @@ const pokemonListRequest = createApiRequest<PokemonListResponse, Error>(
 export const usePokemonStore = create<PokemonState>()((set, get) => ({
   ...createPaginationSlice(set, get, { limit: 40 }),
   items: [],
-  isLoading: false,
-  loadErrorMessage: null,
-  isLoadingMore: false,
-  loadMoreErrorMessage: null,
+  loadingStage: createLoadingStage(set, get, 'loadingStage'),
+  loadingMoreStage: createLoadingStage(set, get, 'loadingMoreStage'),
 
   fetchPokemonList: async () => {
-    if (get().isLoading) return
+    if (get().loadingStage.isLoading) return
 
-    set({
-      isLoading: true,
-      loadErrorMessage: null,
-      loadMoreErrorMessage: null,
-    })
+    get().loadingStage.loading()
+    // Новая загрузка списка делает ошибку дозагрузки неактуальной
+    get().loadingMoreStage.reset()
 
     const result = await pokemonListRequest.call({
       query: {
@@ -69,21 +66,19 @@ export const usePokemonStore = create<PokemonState>()((set, get) => ({
 
     if (result.isError) {
       if (result.isCancelled) {
-        set({ isLoading: false })
+        get().loadingStage.reset()
 
         return
       }
 
-      set({
-        isLoading: false,
-        loadErrorMessage: toErrorMessage(result),
-      })
+      get().loadingStage.error(toErrorMessage(result))
 
       return
     }
 
+    get().loadingStage.success()
+
     set({
-      isLoading: false,
       items: normalizePokemonList(result.data),
       offset: get().limit,
       total: result.data.count,
@@ -92,40 +87,33 @@ export const usePokemonStore = create<PokemonState>()((set, get) => ({
   },
 
   fetchNextPage: async () => {
-    const state = get()
-
     // Защита от параллельных запросов и загрузки при отсутствии данных
-    if (state.isLoadingMore || !state.hasMore) return
+    if (get().loadingMoreStage.isLoading || !get().hasMore) return
 
-    set({
-      isLoadingMore: true,
-      loadMoreErrorMessage: null,
-    })
+    get().loadingMoreStage.loading()
 
     const result = await pokemonListRequest.call({
       query: {
-        limit: state.limit,
-        offset: state.offset,
+        limit: get().limit,
+        offset: get().offset,
       },
     })
 
     if (result.isError) {
       if (result.isCancelled) {
-        set({ isLoadingMore: false })
+        get().loadingMoreStage.reset()
 
         return
       }
 
-      set({
-        isLoadingMore: false,
-        loadMoreErrorMessage: toErrorMessage(result),
-      })
+      get().loadingMoreStage.error(toErrorMessage(result))
 
       return
     }
 
+    get().loadingMoreStage.success()
+
     set({
-      isLoadingMore: false,
       items: [...get().items, ...normalizePokemonList(result.data)],
       offset: get().offset + get().limit,
       total: result.data.count,
