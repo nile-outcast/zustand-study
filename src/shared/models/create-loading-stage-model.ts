@@ -1,7 +1,7 @@
-import type { StoreApi } from 'zustand'
-
+import { setSubModel } from '@/shared/helpers/set-sub-model'
 import type { Nullable } from '@/shared/types/basic'
 import type { FetchStatus } from '@/shared/types/fetch-status'
+import type { SubModelCreator } from '@/shared/types/sub-model-creator'
 
 /**
  * Данные стадии загрузки.
@@ -29,7 +29,7 @@ export const INITIAL_DATA: LoadingStageData = {
  * Данные (`loadStatus`, `errorMessage`) — обычные поля. Предикаты — геттеры,
  * читающие стор при каждом обращении.
  */
-export interface LoadingStage extends Readonly<LoadingStageData> {
+export interface LoadingStageModel extends Readonly<LoadingStageData> {
   readonly isLoading: boolean
   readonly isSuccess: boolean
   readonly isInitial: boolean
@@ -59,15 +59,15 @@ export interface LoadingStage extends Readonly<LoadingStageData> {
  * ```ts
  * interface CommentsStore {
  *   comments: Array<Comment>
- *   reloadingStage: LoadingStage
- *   loadingMoreStage: LoadingStage
+ *   reloadingStage: LoadingStageModel
+ *   loadingMoreStage: LoadingStageModel
  *   loadMoreComments: () => Promise<Nullable<CommentsResponse>>
  * }
  *
  * export const useCommentsStore = create<CommentsStore>()((set, get) => ({
  *   comments: [],
- *   reloadingStage: createLoadingStage(set, get, 'reloadingStage'),
- *   loadingMoreStage: createLoadingStage(set, get, 'loadingMoreStage'),
+ *   reloadingStage: createLoadingStageModel(set, get, 'reloadingStage'),
+ *   loadingMoreStage: createLoadingStageModel(set, get, 'loadingMoreStage'),
  *
  *   async loadMoreComments() {
  *     if (get().loadingMoreStage.isLoading) return null
@@ -83,64 +83,68 @@ export interface LoadingStage extends Readonly<LoadingStageData> {
  * }))
  * ```
  */
-export function createLoadingStage<Store, Key extends keyof Store>(
-  set: StoreApi<Store>['setState'],
-  get: StoreApi<Store>['getState'],
-  path: Key,
-): LoadingStage {
-  const getLoadStatus = (): FetchStatus => {
-    return (get()[path] as LoadingStageData).loadStatus
+export const createLoadingStageModel: SubModelCreator<LoadingStageModel> = (
+  set,
+  get,
+  path,
+) => {
+  const getData = (): LoadingStageData => {
+    return get()[path] as LoadingStageData
   }
 
-  const setStage = (data: LoadingStageData) => {
-    set({ [path]: makeStage(data) } as unknown as Partial<Store>)
+  const setModel = (data: LoadingStageData) => {
+    setSubModel(set, path, makeModel(data))
   }
 
-  // Обычная функция-конструктор, а не стрелочная: вызывается из setStage
+  const getStatus = (): FetchStatus => {
+    return getData().loadStatus
+  }
+
+  // Обычная функция-конструктор, а не стрелочная: вызывается из setModel
   // раньше своего объявления (hoisting), поэтому здесь нужен hoisted вид.
-  function makeStage(data: LoadingStageData): LoadingStage {
+  function makeModel(data: LoadingStageData): LoadingStageModel {
     return {
       ...data,
 
       get isInitial() {
-        return getLoadStatus() === 'initial'
+        return getStatus() === 'initial'
       },
       get isLoading() {
-        return getLoadStatus() === 'loading'
+        return getStatus() === 'loading'
       },
       get isSuccess() {
-        return getLoadStatus() === 'success'
+        return getStatus() === 'success'
       },
       get isError() {
-        return getLoadStatus() === 'error'
+        return getStatus() === 'error'
       },
       get isFinished() {
-        const status = getLoadStatus()
+        const status = getStatus()
 
         return status === 'success' || status === 'error'
       },
 
       loading: () =>
-        setStage({
+        setModel({
           loadStatus: 'loading',
           errorMessage: null,
         }),
 
       success: () =>
-        setStage({
+        setModel({
           loadStatus: 'success',
           errorMessage: null,
         }),
 
       error: (message) =>
-        setStage({
+        setModel({
           loadStatus: 'error',
           errorMessage: message ?? null,
         }),
 
-      reset: () => setStage(INITIAL_DATA),
+      reset: () => setModel(INITIAL_DATA),
     }
   }
 
-  return makeStage(INITIAL_DATA)
+  return makeModel(INITIAL_DATA)
 }

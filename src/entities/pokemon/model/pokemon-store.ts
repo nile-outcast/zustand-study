@@ -2,22 +2,22 @@ import { create } from 'zustand'
 
 import type { Pokemon, PokemonListResponse } from '@/entities/pokemon/types'
 import { POKEMON_API_BASE_URL } from '@/shared/config/pokemon-api'
-import { createApiRequest } from '@/shared/model/create-api-request'
+import { createApiRequest } from '@/shared/models/create-api-request'
 import {
-  createLoadingStage,
-  type LoadingStage,
-} from '@/shared/model/create-loading-stage'
+  createLoadingStageModel,
+  type LoadingStageModel,
+} from '@/shared/models/create-loading-stage-model'
 import {
   createPaginationSlice,
   type PaginationSlice,
-} from '@/shared/model/create-pagination-slice'
+} from '@/shared/models/create-pagination-slice'
 import type { ApiCallErrorResponse } from '@/shared/types/api-call'
 import { isNil } from '@/shared/types/guards'
 
 interface PokemonState extends PaginationSlice {
   items: Array<Pokemon>
-  loadingStage: LoadingStage
-  loadingMoreStage: LoadingStage
+  loadingStage: LoadingStageModel
+  loadingMoreStage: LoadingStageModel
   fetchPokemonList: () => Promise<void>
   fetchNextPage: () => Promise<void>
 }
@@ -47,8 +47,8 @@ const pokemonListRequest = createApiRequest<PokemonListResponse, Error>(
 export const usePokemonStore = create<PokemonState>()((set, get) => ({
   ...createPaginationSlice(set, get, { limit: 40 }),
   items: [],
-  loadingStage: createLoadingStage(set, get, 'loadingStage'),
-  loadingMoreStage: createLoadingStage(set, get, 'loadingMoreStage'),
+  loadingStage: createLoadingStageModel(set, get, 'loadingStage'),
+  loadingMoreStage: createLoadingStageModel(set, get, 'loadingMoreStage'),
 
   fetchPokemonList: async () => {
     if (get().loadingStage.isLoading) return

@@ -1,4 +1,4 @@
-import type { StoreApi } from 'zustand'
+import type { GetState, SetState } from './zustand-actions'
 
 /**
  * Сигнатура фабрики среза для Zustand-стора.
@@ -12,7 +12,7 @@ import type { StoreApi } from 'zustand'
  *   // в сторе: ...createLoadingSlice(set, get)
  */
 export type SliceCreator<Slice, Config = undefined> = (
-  set: StoreApi<Slice>['setState'],
-  get: StoreApi<Slice>['getState'],
+  set: SetState<Slice>,
+  get: GetState<Slice>,
   config?: Config,
 ) => Slice
