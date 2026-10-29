@@ -1,5 +1,6 @@
+import type { Nullable } from 'typescript-extended-types'
+
 import { setSubModel } from '@/shared/helpers/set-sub-model'
-import type { Nullable } from '@/shared/types/basic'
 import type { FetchStatus } from '@/shared/types/fetch-status'
 import type { SubModelCreator } from '@/shared/types/sub-model-creator'
 

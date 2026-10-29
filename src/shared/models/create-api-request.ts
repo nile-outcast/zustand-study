@@ -1,11 +1,14 @@
+import {
+  isNullish,
+  type BaseObject,
+  type Nullable,
+} from 'typescript-extended-types'
+
 import type {
   ApiCallArgs,
   ApiCallConfig,
   ApiCallResponse,
 } from '@/shared/types/api-call'
-
-import type { BaseObject, Nullable } from '../types/basic'
-import { isNil } from '../types/guards'
 
 interface ApiRequestHandle<D, E extends Error = Error> {
   call: <Body extends BaseObject | FormData = BaseObject>(
@@ -48,7 +51,7 @@ async function safeParse<T>(response: Response): Promise<T | undefined> {
 function getRequestBody<Body extends BaseObject | FormData>(
   body?: Body,
 ): FormData | string | undefined {
-  if (isNil(body)) return
+  if (isNullish(body)) return
 
   const isFormData = body instanceof FormData
 
@@ -121,6 +124,6 @@ export function createApiRequest<D, E extends Error = Error>(
     },
 
     cancel: () => controller?.abort(),
-    isPending: () => !isNil(controller),
+    isPending: () => !isNullish(controller),
   }
 }

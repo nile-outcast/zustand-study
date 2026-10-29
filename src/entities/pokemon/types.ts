@@ -1,4 +1,4 @@
-import type { Nullable } from '@/shared/types/basic'
+import type { Nullable } from 'typescript-extended-types'
 
 /** Сырая запись из response.results эндпоинта /pokemon */
 interface PokemonRaw {

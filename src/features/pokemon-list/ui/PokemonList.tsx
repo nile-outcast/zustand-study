@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
+import type { Nullable } from 'typescript-extended-types'
 
 import { usePokemonStore } from '@/entities/pokemon/model/pokemon-store'
-import type { Nullable } from '@/shared/types/basic'
 
 import './PokemonList.css'
 

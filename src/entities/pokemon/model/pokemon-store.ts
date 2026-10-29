@@ -1,3 +1,4 @@
+import { isNullish } from 'typescript-extended-types'
 import { create } from 'zustand'
 
 import type { Pokemon, PokemonListResponse } from '@/entities/pokemon/types'
@@ -12,7 +13,6 @@ import {
   type PaginationSlice,
 } from '@/shared/models/create-pagination-slice'
 import type { ApiCallErrorResponse } from '@/shared/types/api-call'
-import { isNil } from '@/shared/types/guards'
 
 interface PokemonState extends PaginationSlice {
   items: Array<Pokemon>
@@ -82,7 +82,7 @@ export const usePokemonStore = create<PokemonState>()((set, get) => ({
       items: normalizePokemonList(result.data),
       offset: get().limit,
       total: result.data.count,
-      hasMore: !isNil(result.data.next) && result.data.results.length > 0,
+      hasMore: !isNullish(result.data.next) && result.data.results.length > 0,
     })
   },
 
@@ -117,7 +117,7 @@ export const usePokemonStore = create<PokemonState>()((set, get) => ({
       items: [...get().items, ...normalizePokemonList(result.data)],
       offset: get().offset + get().limit,
       total: result.data.count,
-      hasMore: !isNil(result.data.next) && result.data.results.length > 0,
+      hasMore: !isNullish(result.data.next) && result.data.results.length > 0,
     })
   },
 }))

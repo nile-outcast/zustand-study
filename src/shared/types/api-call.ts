@@ -1,4 +1,4 @@
-import type { BaseObject } from './basic'
+import type { BaseObject } from 'typescript-extended-types'
 
 type ApiMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 

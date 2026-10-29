@@ -91,9 +91,7 @@ export default tseslint.config(
   },
   {
     // Механический контроль соглашений из .kodarules / AGENTS.md
-    // src/shared/types исключён: там определяются сами примитивы Nullable / isNil
     files: ['**/*.{ts,tsx}'],
-    ignores: ['src/shared/types/**'],
     rules: {
       // Правило 2: массивы только как Array<T>
       '@typescript-eslint/array-type': ['error', { default: 'generic' }],
@@ -109,19 +107,19 @@ export default tseslint.config(
           // Правило 1: вместо ручного `T | null` — Nullable<T>
           selector: 'TSUnionType > TSNullKeyword',
           message:
-            'Используй Nullable<T> из @/shared/types/basic вместо `T | null`',
+            'Используй Nullable<T> из typescript-extended-types вместо `T | null`',
         },
         {
-          // Правило 3: вместо сравнения с null — isNil
+          // Правило 3: вместо сравнения с null — isNullish
           selector: 'BinaryExpression > Literal[value=null]',
           message:
-            'Используй isNil из @/shared/types/guards вместо сравнения с null',
+            'Используй isNullish из typescript-extended-types вместо сравнения с null',
         },
         {
-          // Правило 3: вместо сравнения с undefined — isNil
+          // Правило 3: вместо сравнения с undefined — isNullish
           selector: "BinaryExpression > Identifier[name='undefined']",
           message:
-            'Используй isNil из @/shared/types/guards вместо сравнения с undefined',
+            'Используй isNullish из typescript-extended-types вместо сравнения с undefined',
         },
       ],
     },
