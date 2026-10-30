@@ -90,7 +90,7 @@ export default tseslint.config(
     },
   },
   {
-    // Механический контроль соглашений из .kodarules / AGENTS.md
+    // Механический контроль соглашений из .kodarules
     files: ['**/*.{ts,tsx}'],
     rules: {
       // Правило 2: массивы только как Array<T>
