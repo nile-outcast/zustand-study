@@ -1,4 +1,3 @@
-import { isNullish } from 'typescript-extended-types'
 import { create } from 'zustand'
 
 import type { Pokemon, PokemonListResponse } from '@/entities/pokemon/types'
@@ -9,13 +8,14 @@ import {
   type LoadingStageModel,
 } from '@/shared/models/create-loading-stage-model'
 import {
-  createPaginationSlice,
-  type PaginationSlice,
-} from '@/shared/models/create-pagination-slice'
+  createPaginationModel,
+  type PaginationModel,
+} from '@/shared/models/create-pagination-model'
 import type { ApiCallErrorResponse } from '@/shared/types/api-call'
 
-interface PokemonState extends PaginationSlice {
+interface PokemonState {
   items: Array<Pokemon>
+  pagination: PaginationModel
   loadingStage: LoadingStageModel
   loadingMoreStage: LoadingStageModel
   fetchPokemonList: () => Promise<void>
@@ -45,8 +45,8 @@ const pokemonListRequest = createApiRequest<PokemonListResponse, Error>(
 )
 
 export const usePokemonStore = create<PokemonState>()((set, get) => ({
-  ...createPaginationSlice(set, get, { limit: 40 }),
   items: [],
+  pagination: createPaginationModel(set, get, 'pagination', { limit: 40 }),
   loadingStage: createLoadingStageModel(set, get, 'loadingStage'),
   loadingMoreStage: createLoadingStageModel(set, get, 'loadingMoreStage'),
 
@@ -59,7 +59,7 @@ export const usePokemonStore = create<PokemonState>()((set, get) => ({
 
     const result = await pokemonListRequest.call({
       query: {
-        limit: get().limit,
+        limit: get().pagination.limit,
         offset: 0,
       },
     })
@@ -78,28 +78,35 @@ export const usePokemonStore = create<PokemonState>()((set, get) => ({
 
     get().loadingStage.success()
 
-    set({
-      items: normalizePokemonList(result.data),
-      offset: get().limit,
-      total: result.data.count,
-      hasMore: !isNullish(result.data.next) && result.data.results.length > 0,
-    })
+    set({ items: normalizePokemonList(result.data) })
+
+    // offset под-модели — начало текущей страницы: загружена первая, значит 0
+    get().pagination.reset()
+    get().pagination.setTotal(result.data.count)
   },
 
   fetchNextPage: async () => {
     // Защита от параллельных запросов и загрузки при отсутствии данных
-    if (get().loadingMoreStage.isLoading || !get().hasMore) return
+    if (get().loadingMoreStage.isLoading || !get().pagination.hasMore) return
 
     get().loadingMoreStage.loading()
+    // Оптимистичный переход: offset под-модели — начало текущей страницы,
+    // поэтому следующая страница уже сдвинута и запрашивается как текущая
+    get().pagination.next()
+
+    const { limit, offset } = get().pagination
 
     const result = await pokemonListRequest.call({
       query: {
-        limit: get().limit,
-        offset: get().offset,
+        limit,
+        offset,
       },
     })
 
     if (result.isError) {
+      // Данных с новой страницы нет — возвращаем offset к последней загруженной
+      get().pagination.previous()
+
       if (result.isCancelled) {
         get().loadingMoreStage.reset()
 
@@ -113,11 +120,9 @@ export const usePokemonStore = create<PokemonState>()((set, get) => ({
 
     get().loadingMoreStage.success()
 
-    set({
-      items: [...get().items, ...normalizePokemonList(result.data)],
-      offset: get().offset + get().limit,
-      total: result.data.count,
-      hasMore: !isNullish(result.data.next) && result.data.results.length > 0,
-    })
+    set({ items: [...get().items, ...normalizePokemonList(result.data)] })
+
+    // Фиксируем total: от него зависит hasMore для следующего перехода
+    get().pagination.setTotal(result.data.count)
   },
 }))
